@@ -486,9 +486,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 E ee desta forma que se acessa uma rota do simplejwt, se o resultado for este ee porque o token espirou
 
-![Screenshot from 2023-02-23 02-44-27](/home/cand/Python_Project/2023/Ajuda ChatGPT/MeuPortfolio/Screenshot from 2023-02-23 02-44-27.png)
+![Screenshot from 2023-02-23 02-44-27](Screenshot from 2023-02-23 02-44-27.png)
 
-Para o nosso caso tem que aparecer assim:![Screenshot from 2023-02-23 02-55-04](/home/cand/Python_Project/2023/Ajuda ChatGPT/MeuPortfolio/Screenshot from 2023-02-23 02-55-04.png)
+Para o nosso caso tem que aparecer assim:![Screenshot from 2023-02-23 02-55-04](Screenshot from 2023-02-23 02-55-04.png)
 
 Ou
 
