@@ -61,8 +61,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'nome_do_aplicativo',
+    'nome_do_projeto.nome_do_aplicativo',
 ]
+```
+
+Nao se esquecer de inserir o nome do projeco no ficheiro apps.py por causa da forma como criamos os aplicativos:
+
+```
+from django.apps import AppConfig
+
+
+class Nome_do_aplicativoConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "nome_do_projeto.nome_do_aplicativo"
 ```
 
 1. Instale o pacote rest_framework_simplejwt usando o pip:
