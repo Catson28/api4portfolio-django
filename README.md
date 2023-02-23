@@ -517,3 +517,125 @@ No entanto, se você optar por usar o `rest_framework_jwt`, precisará usar o de
 Por outro lado, se você usar o `rest_framework_simplejwt`, poderá usar o decorador `@authentication_classes` com `JWTAuthentication` para autenticar as solicitações HTTP. O `rest_framework_simplejwt` também possui opções de configuração mais fáceis de usar para personalizar a autenticação e a autorização.
 
 Em resumo, se você estiver criando um novo projeto Django REST Framework, é recomendável usar o `rest_framework_simplejwt`, pois é mais fácil de usar e tem mais recursos de personalização. Se você estiver trabalhando em um projeto existente que usa o `rest_framework_jwt`, poderá continuar usando-o ou migrar para o `rest_framework_simplejwt` se preferir uma biblioteca mais atualizada e fácil de usar.
+
+###	Logout
+
+> ​	rest_framework_jwt
+
+Para criar um endpoint para logout no `rest_framework_jwt`, você pode usar o método `JWTAuthentication.invalidate()` para invalidar o token de autenticação JWT do usuário. O método `invalidate()` revoga o token JWT, o que significa que o usuário precisará obter um novo token JWT para se autenticar novamente.
+
+Para implementar um endpoint de logout usando o `rest_framework_jwt`, siga estas etapas:
+
+1. Importe o método `JWTAuthentication` e o pacote `jwt` na sua view:
+
+```
+from rest_framework_jwt.authentication import JWTAuthentication
+from jwt import InvalidTokenError
+```
+
+1. Crie uma nova view para lidar com a solicitação de logout:
+
+```
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+class LogoutView(APIView):
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        try:
+            request.user.auth_token.delete()
+            return Response(status=status.HTTP_200_OK)
+        except (AttributeError, InvalidTokenError):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+```
+
+1. Adicione a nova view ao arquivo `urls.py` do seu aplicativo:
+
+```
+from django.urls import path
+from .views import LogoutView
+
+urlpatterns = [
+    path('logout/', LogoutView.as_view(), name='logout'),
+]
+```
+
+1. Agora, quando um usuário fizer uma solicitação para a URL `/logout/` usando o método POST, o token JWT do usuário será invalidado e ele será desconectado.
+
+Observe que, ao usar o `rest_framework_jwt`, o token JWT é armazenado como um objeto `Token` do modelo Django, que é criado automaticamente quando o usuário se autentica com sucesso. Para invalidar o token JWT, estamos chamando o método `delete()` no objeto `Token` associado ao usuário atual.
+
+> ​	rest_framework_simplejwt
+
+Para criar um endpoint de logout no `rest_framework_simplejwt`, você precisa implementar algumas etapas:
+
+1. Importe as classes `JWTAuthentication` e `TokenObtainPairView` do `rest_framework_simplejwt`:
+
+```
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.views import TokenObtainPairView
+```
+
+1. Substitua o método `post()` da classe `TokenObtainPairView` pelo seguinte código para que o token seja invalidado após a saída:
+
+```
+class CustomTokenObtainPairView(TokenObtainPairView):
+    authentication_classes = []
+    
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            refresh_token = response.data['refresh']
+            access_token = response.data['access']
+            response.set_cookie(key='refresh_token', value=refresh_token, httponly=True, samesite='None', secure=True)
+            response.data = {'access_token': access_token}
+        return response
+
+class CustomTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            response.delete_cookie('refresh_token')
+        return response
+```
+
+Observe que a classe `CustomTokenObtainPairView` herda da classe `TokenObtainPairView` do `rest_framework_simplejwt` e sobrescreve o método `post()`. No método `post()`, depois que o token de acesso e o token de atualização são gerados com sucesso, o token de atualização é definido em um cookie seguro e o token de acesso é retornado.
+
+1. Crie uma nova view para lidar com a solicitação de logout:
+
+```
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.response import Response
+
+class LogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (JWTAuthentication,)
+
+    def post(self, request):
+        try:
+            token = RefreshToken(request.data["refresh_token"])
+            token.blacklist()
+            return Response(status=204)
+        except Exception:
+            return Response(status=400)
+```
+
+1. Adicione a nova view ao arquivo `urls.py` do seu aplicativo:
+
+```
+from django.urls import path
+from .views import CustomTokenObtainPairView, CustomTokenRefreshView, LogoutView
+
+urlpatterns = [
+    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+]
+```
+
+1. Agora, quando um usuário fizer uma solicitação para a URL `/logout/` usando o método POST, o token de atualização será invalidado e o cookie `refresh_token` será excluído.
+
+Observe que o `rest_framework_simplejwt` armazena o token JWT como um objeto `RefreshToken`, que é criado automaticamente quando o usuário se autentica com sucesso. Para invalidar o token JWT, estamos chamando o método `blacklist()` no objeto `RefreshToken` associado ao token de atualização enviado pelo usuário na solicitação de logout.
