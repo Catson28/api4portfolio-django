@@ -888,6 +888,30 @@ Note que o corpo da requisição deve conter as informações a serem atualizada
 
 #	_______________________________________________________________________________________________________________
 
+#	Alternar entre versoes python
+
+Para alterar a versão padrão do Python em seu sistema Ubuntu, você pode usar o comando `update-alternatives`. Este comando permite que você defina um link simbólico para o executável do Python em uma determinada versão.
+
+Para configurar o Python 3.8 como a versão padrão, você pode executar os seguintes comandos:
+
+```
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 2
+sudo update-alternatives --config python3
+```
+
+O primeiro comando define o Python 3.8 como a opção "1" em `/usr/bin/python3`. O segundo comando define o Python 3.9 como a opção "2" em `/usr/bin/python3`. O terceiro comando permite que você selecione qual versão do Python deve ser usada como padrão.
+
+Quando você executar o terceiro comando, será apresentada uma lista de todas as versões do Python que foram adicionadas anteriormente com o comando `update-alternatives`. Selecione a versão desejada e pressione Enter. A partir desse ponto, o Python selecionado será usado como a versão padrão em seu sistema.
+
+Sim, se você selecionou a opção 1, que corresponde ao caminho `/usr/bin/python3.8`, mas o Python 3.9 ainda está sendo usado como padrão, é possível que a opção esteja no modo "manual". Nesse caso, você pode tentar mudar para o modo "automático" com o seguinte comando:
+
+```
+sudo update-alternatives --auto python3
+```
+
+Isso deve fazer com que o Python 3.8 seja o padrão. Se isso não funcionar, pode ser necessário verificar se o Python 3.8 está instalado corretamente e se há algum conflito com outras versões do Python instaladas em seu sistema.
+
 #	Chat Django Channels e Rediz 
 
 
@@ -1223,7 +1247,7 @@ Este arquivo define o roteador ASGI para o aplicativo. Ele usa o roteador URL do
 1. Execute o servidor Django Channels executando o seguinte comando no terminal:
 
 ```
-daphne myproject.asgi:application
+daphne backend.asgi:application
 ```
 
 Este comando inicia o servidor Daphne, que é o servidor ASGI usado pelo Django Channels. Ele deve exibir uma mensagem informando que o servidor está sendo execut
@@ -1260,16 +1284,9 @@ Este comando cria uma nova sala de chat com o nome `test-room`.
 
 Parabéns, você criou com sucesso uma API de chat Django usando o Django Channels e o Redis para autenticação de usuários! Agora você pode construir sobre este projeto para adicionar recursos adicionais, como envio de arquivos, emojis, notificações de presença e muito mais.
 
-![img](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2730%27%20height=%2730%27/%3e)![catson@outlook.pt](https://chat.openai.com/_next/image?url=https%3A%2F%2Fs.gravatar.com%2Favatar%2Fccefd8635a6c7e514705e2e03d9fe457%3Fs%3D480%26r%3Dpg%26d%3Dhttps%253A%252F%252Fcdn.auth0.com%252Favatars%252Fca.png&w=64&q=75)
-
-continue
-
-
-
 1. Para encerrar a sessão, volte para o shell do Django e execute o seguinte código:
 
 ```
-python
 from django.contrib.sessions.models import Session
 Session.objects.all().delete()
 ```
@@ -1280,17 +1297,10 @@ Este comando remove todas as sessões de usuários do banco de dados. Isso é im
 
 Parabéns, você agora tem uma API de chat Django Channels totalmente funcional com autenticação de usuário usando Redis!
 
-![img](data:image/svg+xml,%3csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20version=%271.1%27%20width=%2730%27%20height=%2730%27/%3e)![catson@outlook.pt](https://chat.openai.com/_next/image?url=https%3A%2F%2Fs.gravatar.com%2Favatar%2Fccefd8635a6c7e514705e2e03d9fe457%3Fs%3D480%26r%3Dpg%26d%3Dhttps%253A%252F%252Fcdn.auth0.com%252Favatars%252Fca.png&w=64&q=75)
-
-continue
-
-
-
 1. Para implantar a API de chat em um ambiente de produção, você pode usar uma plataforma de hospedagem em nuvem, como o Amazon Web Services (AWS) ou o Google Cloud Platform (GCP). Ambas as plataformas oferecem serviços gerenciados para executar contêineres Docker, que podem ser usados para implantar sua aplicação Django com o Django Channels e o Redis.
 2. Primeiro, você precisará configurar o seu projeto Django para ser executado em um contêiner Docker. Para fazer isso, crie um arquivo `Dockerfile` na raiz do seu projeto Django com o seguinte conteúdo:
 
 ```
-bash
 # Use an official Python runtime as a parent image
 FROM python:3.9
 
@@ -1315,7 +1325,6 @@ Este arquivo especifica que a imagem Docker deve usar a versão 3.9 do Python co
 1. Em seguida, crie um arquivo `docker-compose.yml` na raiz do seu projeto com o seguinte conteúdo:
 
 ```
-yaml
 version: '3'
 services:
   web:
@@ -1337,7 +1346,6 @@ Este arquivo especifica que o serviço `web` deve ser construído a partir do `D
 - Use o AWS CLI para fazer login no ECR e fazer push da imagem do contêiner para o repositório ECR. Por exemplo:
 
 ```
-php
 aws ecr get-login-password --region <REGION> | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com
 docker build -t <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<REPOSITORY_NAME>:<TAG> .
 docker push <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<REPOSITORY_NAME>:<TAG>
