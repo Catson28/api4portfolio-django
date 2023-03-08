@@ -1278,6 +1278,8 @@ Room.objects.create(name='test-room')
 
 Este comando cria uma nova sala de chat com o nome `test-room`.
 
+### como acessar o chat
+
 1. Deixe o shell do Django aberto e abra o seu navegador. Acesse o endereço `http://localhost:8000/chat/test-room/` e faça login com as credenciais do usuário que você criou anteriormente.
 2. Abra uma nova guia do navegador e acesse o mesmo endereço `http://localhost:8000/chat/test-room/`. Faça login com as mesmas credenciais do usuário.
 3. Digite algumas mensagens na caixa de texto e clique em Enviar. As mensagens devem ser exibidas em ambas as guias do navegador.
@@ -1296,6 +1298,65 @@ Este comando remove todas as sessões de usuários do banco de dados. Isso é im
 1. Para parar o servidor da API, volte para o terminal onde você iniciou o servidor e pressione `Ctrl + C`. Isso interromperá o servidor.
 
 Parabéns, você agora tem uma API de chat Django Channels totalmente funcional com autenticação de usuário usando Redis!
+
+Claro, aqui está o arquivo `urls.py` completo com todas as rotas da API que criei usando Django Channels e Redis:
+
+```
+python
+from django.urls import path
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from chat.consumers import ChatConsumer
+from django.conf.urls import url
+from django.views.generic import TemplateView
+
+websocket_urlpatterns = [
+    path('ws/<room_name>/', ChatConsumer.as_asgi()),
+]
+
+urlpatterns = [
+    url(r'^$', TemplateView.as_view(template_name='home.html')),
+]
+
+application = ProtocolTypeRouter({
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            websocket_urlpatterns
+        )
+    ),
+})
+```
+
+Aqui temos duas rotas:
+
+1. `'/'`: rota que retorna a página inicial da aplicação. É uma rota de view simples que usa uma TemplateView para renderizar o template `home.html`.
+2. `'/ws/<room_name>/': rota que lida com a conexão WebSocket dos usuários autenticados e os conecta ao canal correto de chat. O parâmetro `<room_name>`é o nome da sala de chat para a qual o usuário está se conectando. Esta rota é tratada pelo`ChatConsumer`que foi definido em`consumers.py`.
+
+O `ProtocolTypeRouter` é usado para rotear a conexão para o protocolo WebSocket. O `AuthMiddlewareStack` é usado para adicionar a autenticação ao WebSocket e o `URLRouter` é usado para rotear a conexão WebSocket para as rotas especificadas em `websocket_urlpatterns`.
+
+
+
+Aqui está o arquivo `urls.py` completo para a API de chat criada com Django Channels e Redis:
+
+```
+python
+from django.urls import re_path
+
+from .consumers import ChatConsumer
+
+
+websocket_urlpatterns = [
+    re_path(r'ws/chat/(?P<room_name>\w+)/$', ChatConsumer.as_asgi()),
+]
+```
+
+Esta é a única rota necessária para a API, já que estamos usando WebSocket para comunicação em tempo real. Quando um cliente faz uma conexão WebSocket em `/ws/chat/<room_name>/`, o Django Channels roteia a solicitação para o `ChatConsumer` apropriado, passando o nome da sala como um parâmetro de URL.
+
+O `ChatConsumer` é responsável por gerenciar a conexão WebSocket, enviar e receber mensagens e gerenciar os usuários na sala de bate-papo. Ele também pode executar ações personalizadas, como manter um histórico de mensagens ou enviar notificações para usuários específicos.
+
+Além disso, é possível incluir outras rotas em `urls.py` para fornecer uma API HTTP para gerenciar salas de bate-papo ou usuários. No entanto, isso pode não ser necessário, dependendo dos requisitos do projeto.
+
+##	Cloud
 
 1. Para implantar a API de chat em um ambiente de produção, você pode usar uma plataforma de hospedagem em nuvem, como o Amazon Web Services (AWS) ou o Google Cloud Platform (GCP). Ambas as plataformas oferecem serviços gerenciados para executar contêineres Docker, que podem ser usados para implantar sua aplicação Django com o Django Channels e o Redis.
 2. Primeiro, você precisará configurar o seu projeto Django para ser executado em um contêiner Docker. Para fazer isso, crie um arquivo `Dockerfile` na raiz do seu projeto Django com o seguinte conteúdo:
